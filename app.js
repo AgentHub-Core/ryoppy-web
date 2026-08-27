@@ -631,7 +631,7 @@
 
   async function init() {
     try {
-      const response = await fetch('./data/cincinnati-alpha.json');
+      const response = await fetch('./data/cincinnati-alpha.json?v=0.3.0');
       if (!response.ok) throw new Error(`data ${response.status}`);
       state.data = await response.json();
       state.character = state.data.characters.find(item => item.id === CHARACTER_ID);

@@ -2,10 +2,10 @@ const CACHE = 'ryoppy-explore-v0.3.0';
 const FILES = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
+  './styles.css?v=0.3.0',
+  './app.js?v=0.3.0',
   './manifest.webmanifest',
-  './data/cincinnati-alpha.json',
+  './data/cincinnati-alpha.json?v=0.3.0',
   './assets/icon.png',
   './assets/characters/christian/idle.png',
   './assets/characters/christian/talk.png',
