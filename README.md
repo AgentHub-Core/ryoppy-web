@@ -1,54 +1,40 @@
-# りょっぴー Web Alpha
+# りょっぴー Encounter Alpha
 
-Cincinnatiを歩いて歴史人物に会い、資産戦闘力、お金のヒミツ、街とのつながり、写真の思い出を集める静的Webアプリです。GitHub Pagesへそのまま公開できます。ビルドツールと専用サーバーは不要です。
+Cincinnatiを歩き、現地に近づくとその土地を築いた歴史人物が出現する、位置情報連動型の歴史図鑑ゲームです。
 
-## 機能
-- 1950年代アメリカン・ポップのモバイル優先UI
-- 3人物、6スポット、18関係ノード
-- ブラウザ位置情報と自宅用位置デモ
-- 一人称の導入、人物ごとの口調、選択式質問
-- ブラウザ読み上げと全文テキスト
-- 現代ドル換算の推定資産、資産戦闘力、ランク
-- 富の内訳、資産推移
-- 人物図鑑
-- 写真のブラウザ内保存
-- PWAマニフェストとオフラインキャッシュ
-- $6.99完全版のモック購入
+Web Alpha v0.2は、Findlay MarketでChristian Moerleinと遭遇する一本の体験へ集中しています。
+
+## 体験の流れ
+
+1. 周辺の古い信号を検出する
+2. 現地へ近づく、または位置デモを使う
+3. 歴史人物が画面いっぱいに出現する
+4. 本人の短い物語を読む、または聞く
+5. 質問して人物と街のつながりを発見する
+6. 人物を図鑑へ記録する
+
+人物の進捗はlocalStorageへ保存します。位置情報、音声読み上げ、Service Workerによるオフラインキャッシュをブラウザ標準機能だけで実装しています。
 
 ## ローカル確認
+
 ```bash
 python3 -m http.server 4173
 ```
+
 ブラウザで `http://localhost:4173` を開きます。
 
 検査:
+
 ```bash
 node scripts/validate.mjs
 ```
 
-## GitHub Pagesへ公開
-1. GitHubで空のリポジトリを作る
-2. このフォルダの内容をpushする
-3. `Settings → Pages → Build and deployment → Source → GitHub Actions` を選ぶ
+## GitHub Pages
 
-```bash
-git init
-git add .
-git commit -m "Add Ryoppy Web Alpha"
-git branch -M main
-git remote add origin git@github.com:YOUR_NAME/ryoppy-web.git
-git push -u origin main
-```
+`main`へpushするとGitHub Actionsが内容を検査し、自動公開します。
 
-公開URL例:
+公開URL:
+
 ```text
-https://YOUR_NAME.github.io/ryoppy-web/
+https://agenthub-core.github.io/ryoppy-web/
 ```
-
-## 保存
-- 人物進捗と設定: localStorage
-- 写真: IndexedDB
-- 保存範囲: 現在のブラウザと端末
-
-## 資産データ
-Alphaの資産額、内訳、推移はUI検証用の仮推定値です。公開コンテンツへ進む際に人物ごとの再調査を行います。

@@ -1,12 +1,12 @@
 {
-  "name": "りょっぴー Web Alpha",
+  "name": "りょっぴー Encounter Alpha",
   "short_name": "りょっぴー",
-  "description": "Cincinnatiを歩いて歴史人物と街の物語を集めるWebアプリ",
+  "description": "Cincinnatiの街角で歴史人物と遭遇し、物語と街のつながりを集めるWebアプリ",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fff3d9",
-  "theme_color": "#fff3d9",
+  "background_color": "#13212b",
+  "theme_color": "#13212b",
   "icons": [
     {
       "src": "./assets/icon.png",

@@ -1,58 +1,501 @@
-(()=>{'use strict';
-const $=s=>document.querySelector(s),root=$('#app'),toast=$('#toast'),KEY='ryoppy-web-v1';
-const rt={data:null,loc:null,error:'',spot:null,q:{},photos:{},urls:[],install:null};
-const st=(()=>{const d={onboarded:false,demo:true,demoSpot:'findlay-market',chars:[],nodes:[],full:false};try{return {...d,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return d}})();
-const save=()=>localStorage.setItem(KEY,JSON.stringify(st));
-const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
-const say=m=>{toast.textContent=m;toast.classList.add('show');clearTimeout(say.t);say.t=setTimeout(()=>toast.classList.remove('show'),2400)};
-const img=id=>`./assets/characters/${encodeURIComponent(id)}.png`;
-const money=v=>v>=1e9?`$${(v/1e9).toFixed(v>=1e10?0:1)}B`:v>=1e6?`$${(v/1e6).toFixed(v>=1e7?0:1)}M`:v>=1e3?`$${Math.round(v/1e3)}K`:`$${Math.round(v).toLocaleString()}`;
-const rad=n=>n*Math.PI/180;
-function dist(a,b){if(!a||!b)return null;const R=6371000,dLat=rad(b.latitude-a.latitude),dLon=rad(b.longitude-a.longitude),h=Math.sin(dLat/2)**2+Math.cos(rad(a.latitude))*Math.cos(rad(b.latitude))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
-function direction(a,b){if(!a||!b)return'';const y=Math.sin(rad(b.longitude-a.longitude))*Math.cos(rad(b.latitude)),x=Math.cos(rad(a.latitude))*Math.sin(rad(b.latitude))-Math.sin(rad(a.latitude))*Math.cos(rad(b.latitude))*Math.cos(rad(b.longitude-a.longitude)),deg=(Math.atan2(y,x)*180/Math.PI+360)%360;return['北','北東','東','南東','南','南西','西','北西'][Math.round(deg/45)%8]}
-const fmt=d=>d==null?'距離未取得':d<1000?`約${Math.max(1,Math.round(d/10)*10)}m`:`約${(d/1000).toFixed(1)}km`;
-const spot=id=>rt.data.spots.find(x=>x.id===id),char=id=>rt.data.characters.find(x=>x.id===id);
-function coords(){if(st.demo){const s=spot(st.demoSpot)||rt.data.spots[0];return{latitude:s.latitude,longitude:s.longitude,accuracy:5}}return rt.loc}
-function nearest(c){const p=coords(),xs=c.spotIds.map(spot).filter(Boolean).map(s=>({spot:s,d:p?dist(p,s):null,dir:p?direction(p,s):''}));xs.sort((a,b)=>(a.d??1e15)-(b.d??1e15));return xs[0]}
-function summary(c){const n=nearest(c),done=st.chars.includes(c.id),near=!!(n&&n.d!=null&&n.d<=n.spot.radiusM);return{c,n,done,near,reveal:done||near}}
-function route(){const x=location.hash.replace(/^#\/?/,'').split('/');return x[0]==='character'&&x[1]?{name:'character',id:decodeURIComponent(x[1])}:{name:['home','map','book','settings','purchase'].includes(x[0])?x[0]:'home'}}
-function go(r){const h=`#/${r}`;location.hash===h?render():location.hash=h}
-function label(r){return r.name==='map'?'全体マップ':r.name==='book'?'人物図鑑':r.name==='settings'?'設定':r.name==='purchase'?'完全版':r.name==='character'?(char(r.id)?.nameJa||'人物'):'近くの人物'}
-function top(r){const back=['character','purchase'].includes(r.name);return`<header class="top">${back?'<button class="back" data-a="back">←</button>':''}<div class="brand"><img src="./assets/icon.png" alt=""><div><p class="logo">Ryoppy!</p><p class="sub">${esc(label(r))}</p></div></div><button class="icon" data-a="go" data-r="settings">⚙</button></header>`}
-function nav(active){return`<nav class="nav">${[['home','●','近く'],['map','⌖','マップ'],['book','▣','図鑑'],['settings','⚙','設定']].map(([r,i,l])=>`<button class="${active===r?'active':''}" data-a="go" data-r="${r}"><b>${i}</b>${l}</button>`).join('')}</nav>`}
-function side(){return`<aside class="side"><section class="poster"><p class="eyebrow">WEB ALPHA</p><h2>街の金持ち、会いに行こ。</h2><p>1950年代アメリカン・ポップの世界で、Cincinnatiの歴史人物を発見。口調、資産戦闘力、お金のヒミツ、写真の思い出まで一緒に集められます。</p><div class="tags"><span class="tag">♥ デート向け</span><span class="tag">⌖ 位置情報</span><span class="tag">$ 現代ドル</span><span class="tag">🔊 読み上げ</span></div></section><section class="side-card"><p class="eyebrow">YOUR COLLECTION</p><div class="stats"><div class="stat"><strong>${st.chars.length}/3</strong><span>人物</span></div><div class="stat alt"><strong>${st.nodes.length}</strong><span>関係ノード</span></div></div></section></aside>`}
-function shell(html,r){root.innerHTML=`<div class="shell"><section class="phone">${top(r)}<main class="main">${html}</main>${['character','purchase'].includes(r.name)?'':nav(r.name)}</section>${side()}</div>`}
-function intro(){shell(`<section class="intro"><img src="./assets/icon.png" alt="りょっぴー"><h1>Ryoppy!</h1><p>Cincinnatiを歩いて、昔の金持ちや街のレジェンドに会おう。<br>ふたりで質問を選ぶと、歴史が会話のネタになる。</p><button class="btn primary" data-a="begin">さっそく探す ♥</button><p class="note">最初は位置デモで始まります。設定から現在地へ切り替えられます。</p></section>`,{name:'home'})}
-function personCard(x){const {c,n,done,near,reveal}=x;return`<article class="person ${reveal?'':'locked'}" data-a="character" data-id="${c.id}"><div class="art" style="background:${c.accent}"><img src="${img(c.id)}" alt="${reveal?esc(c.nameJa):'未発見人物'}"></div><div class="copy"><div class="meta"><span class="status ${done?'done':near?'near':''}">${done?'図鑑入り':near?'会えるかも！':'未発見'}</span><span class="distance">${fmt(n?.d)} ${n?.dir||''}</span></div><h3>${reveal?esc(c.nameJa):esc(c.teaser)}</h3><p>${reveal?esc(c.subtitle):esc(n?.spot.name||'Streetcar沿線')}</p>${reveal?`<div class="power-mini"><span class="rank">${c.wealth.rank}</span>戦闘力 ${c.wealth.battlePower.toLocaleString()}</div>`:''}</div></article>`}
-function home(){const xs=rt.data.characters.map(summary).sort((a,b)=>(a.n?.d??1e15)-(b.n?.d??1e15)),near=xs.filter(x=>x.near&&!x.done).length,where=st.demo?`位置デモ：${spot(st.demoSpot)?.name}`:rt.loc?`現在地取得済み・精度 約${Math.round(rt.loc.accuracy||0)}m`:'現在地を待っています';shell(`<div class="stack"><section class="hero"><p class="eyebrow">CINCINNATI STREETCAR</p><h1>近くに、すごい人がいるかも！</h1><p>昔の金持ちや街のレジェンドを集めよう。どのくらい稼ぎ、何で富を作ったかも一目でわかる。</p><div class="stats"><div class="stat"><strong>${near}</strong><span>すぐ会える</span></div><div class="stat alt"><strong>${st.chars.length}/3</strong><span>図鑑入り</span></div></div></section><section class="card"><div class="section-head"><div><h3>${esc(where)}</h3><p class="muted">GitHub Pages上でブラウザ位置情報を使えます。</p></div><span class="status ${st.demo?'demo':'done'}">${st.demo?'DEMO':'GPS'}</span></div><div class="buttons"><button class="btn secondary" data-a="gps">現在地を使う</button><button class="btn ghost" data-a="go" data-r="settings">位置デモ設定</button></div>${rt.error?`<p class="note">${esc(rt.error)}</p>`:''}</section><div class="section-head"><div><h2>会いに行く？</h2><p>近い人物から表示</p></div><span class="count">3人</span></div><div class="people">${xs.map(personCard).join('')}</div><section class="card" style="background:var(--blush)"><h3>♥ デートの小ネタ</h3><p class="muted">一台をふたりで見て、質問を交互に選ぶ。気になった人物の戦闘力を比べると盛り上がる。</p></section></div>`,{name:'home'})}
-function mapView(){const ss=rt.data.spots,minLat=Math.min(...ss.map(s=>s.latitude))-.0018,maxLat=Math.max(...ss.map(s=>s.latitude))+.0018,minLon=Math.min(...ss.map(s=>s.longitude))-.002,maxLon=Math.max(...ss.map(s=>s.longitude))+.002,pt=s=>({x:52+(s.longitude-minLon)/(maxLon-minLon)*816,y:45+(maxLat-s.latitude)/(maxLat-minLat)*330}),ordered=[...ss].sort((a,b)=>b.latitude-a.latitude),path=ordered.map(s=>{const p=pt(s);return`${p.x},${p.y}`}).join(' '),sel=spot(rt.spot)||ordered[0],pnow=coords(),markers=ss.map(s=>{const p=pt(s),c=char(s.characterIds[0]),x=summary(c),cl=x.done?'done':x.near?'near':'';return`<g class="marker ${cl}" data-a="spot" data-id="${s.id}" transform="translate(${p.x} ${p.y})"><circle r="23"/><image href="${img(c.id)}" x="-18" y="-18" width="36" height="36"/><text y="38" text-anchor="middle">${esc(s.name.replace('Cincinnati ',''))}</text></g>`}).join(''),cur=pnow?{x:52+(pnow.longitude-minLon)/(maxLon-minLon)*816,y:45+(maxLat-pnow.latitude)/(maxLat-minLat)*330}:null,c=char(sel.characterIds[0]);shell(`<div class="stack"><div class="section-head"><div><h2>全体マップ</h2><p>Streetcar沿線の6スポット</p></div><span class="count">${st.demo?'DEMO':'GPS'}</span></div><section class="map"><svg viewBox="0 0 920 420"><rect class="map-paper" width="920" height="420"/>${Array.from({length:11},(_,i)=>`<line class="street" x1="${20+i*85}" y1="0" x2="${120+i*70}" y2="420"/>`).join('')}${Array.from({length:7},(_,i)=>`<line class="street" x1="0" y1="${35+i*55}" x2="920" y2="${18+i*58}"/>`).join('')}<path class="river" d="M0 345 C190 300 325 390 500 355 C665 322 780 385 920 330 L920 420 L0 420Z"/><polyline class="route" points="${path}"/>${markers}${cur?`<circle cx="${cur.x}" cy="${cur.y}" r="10" fill="#2874d0" stroke="#fff" stroke-width="5"/>`:''}</svg><div class="map-sheet"><div class="section-head"><div><h3>${esc(sel.name)}</h3><p>${esc(sel.address)}</p></div><span class="distance">${fmt(pnow?dist(pnow,sel):null)}</span></div><p class="muted" style="margin-top:8px">${esc(sel.context)}</p><button class="btn primary" style="margin-top:10px" data-a="character" data-id="${c.id}">${esc(c.nameJa)}に会う</button></div></section></div>`,{name:'map'})}
-function wealth(c){const w=c.wealth;return`<section class="wealth"><div class="score"><div><small>資産戦闘力</small><strong>${w.battlePower.toLocaleString()}<span style="font-size:10px;color:var(--muted)"> / 10,000</span></strong></div><div class="burst">${w.rank}</div></div><div class="meter"><span style="width:${w.battlePower/100}%"></span></div><div class="money"><span>推定ピーク資産・${w.modernUsdYear}年ドル換算</span><b>${money(w.modernUsd)}</b><p class="muted">${esc(w.oneLine)}</p></div></section>`}
-function speech(c,kind,q=''){return`<div class="speech"><button class="play" data-a="speak" data-id="${c.id}" data-kind="${kind}" data-q="${q}">▶</button><div class="line"><span></span></div><button class="icon" style="width:40px;height:40px" data-a="stop">■</button></div>`}
-function questions(c,active){return`<div class="questions"><h3>もっと聞いてみよう！</h3>${c.questions.map((q,i)=>`<button class="q ${active?.id===q.id?'active':''}" data-a="question" data-id="${c.id}" data-q="${q.id}"><i>${['★','♥','✦'][i]}</i><span>${esc(q.question)}</span><b>›</b></button>`).join('')}${active?`<div class="answer"><h4>Q. ${esc(active.question)}</h4><p>${esc(active.answer)}</p>${speech(c,'answer',active.id)}<p class="note">関係ノードを${active.unlockNodeIds.length}件ゲット！</p></div>`:''}</div>`}
-function donut(c){let n=0;const ranges=c.wealth.composition.map(x=>{const a=n;n+=x.percent;return`${x.color} ${a}% ${n}%`}).join(',');return`<section class="chart"><p class="eyebrow">MONEY SECRET</p><h2>お金のヒミツ</h2><p>富の中心をざっくり表示。</p><div class="donut-wrap"><div class="donut" style="background:conic-gradient(${ranges})"></div><div class="legend">${c.wealth.composition.map(x=>`<div><span class="dot" style="background:${x.color}"></span><span>${x.icon} ${esc(x.label)}</span><b>${x.percent}%</b></div>`).join('')}</div></div></section>`}
-function timeline(c){const a=c.wealth.timeline,w=380,h=210,L=32,R=14,T=18,B=31,min=Math.min(...a.map(x=>x.year)),max=Math.max(...a.map(x=>x.year)),mv=Math.max(...a.map(x=>x.modernUsd)),X=y=>L+(y-min)/Math.max(1,max-min)*(w-L-R),Y=v=>h-B-v/mv*(h-T-B),line=a.map(p=>`${X(p.year)},${Y(p.modernUsd)}`).join(' '),area=`${L},${h-B} ${line} ${X(max)},${h-B}`;return`<section class="chart"><p class="eyebrow">WEALTH TIMELINE</p><h2>資産のうつりかわり</h2><p>生涯でどれくらい富が伸びたかを確認。</p><svg class="timeline" viewBox="0 0 ${w} ${h}">${[0,.25,.5,.75,1].map(r=>`<line class="grid" x1="${L}" y1="${T+r*(h-T-B)}" x2="${w-R}" y2="${T+r*(h-T-B)}"/>`).join('')}<polygon class="area" points="${area}"/><polyline class="trend" points="${line}"/>${a.map(p=>`<circle class="point" cx="${X(p.year)}" cy="${Y(p.modernUsd)}" r="5"/><text class="year" x="${X(p.year)}" y="${h-10}" text-anchor="middle">${p.year}</text>`).join('')}</svg><div class="total">ピーク ${money(c.wealth.modernUsd)}</div></section>`}
-function nodes(c){const ns=rt.data.relationNodes.filter(n=>n.characterIds.includes(c.id));return`<section class="nodes"><p class="eyebrow">CONNECTIONS</p><h2>つながる歴史</h2><p>質問を聞くと、街・企業・事件が開いていく。</p><div class="node-grid">${ns.map(n=>{const ok=st.nodes.includes(n.id);return`<article class="node ${ok?'':'locked'}"><h3>${ok?esc(n.title):'？？？'}</h3><p>${ok?esc(n.summary):'人物へ質問すると開くよ。'}</p></article>`}).join('')}</div></section>`}
-function photoPanel(c,s){const ps=rt.photos[c.id]||[];return`<section class="photos"><p class="eyebrow">MEMORY</p><h2>ふたりの思い出</h2><p>その場の写真を人物と場所へ結びつけて保存。</p><div class="photo-actions"><button class="btn primary" data-a="camera" data-id="${c.id}">写真を撮る</button><button class="btn secondary" data-a="album" data-id="${c.id}">アルバムから</button></div><input class="sr" id="camera-${c.id}" type="file" accept="image/*" capture="environment" data-photo="1" data-id="${c.id}" data-spot="${s.id}"><input class="sr" id="album-${c.id}" type="file" accept="image/*" data-photo="1" data-id="${c.id}" data-spot="${s.id}">${ps.length?`<div class="photo-grid">${ps.map(p=>`<div class="photo"><img src="${p.url}" alt="旅の写真"><button data-a="del-photo" data-photo-id="${p.id}">×</button></div>`).join('')}</div>`:'<div class="empty">まだ写真がありません。ふたりの一枚を残そう。</div>'}</section>`}
-function characterView(id){const c=char(id);if(!c)return go('home');const x=summary(c),n=x.n||{spot:spot(c.spotIds[0]),d:null},can=x.done||x.near,active=c.questions.find(q=>q.id===rt.q[c.id]);shell(`<div class="stack"><section class="char-hero" style="background:${c.accent}"><img src="${img(c.id)}" alt="${esc(c.nameJa)}" style="${can?'':'filter:grayscale(1);opacity:.42'}"><div><span class="status ${x.done?'done':x.near?'near':''}">${x.done?'図鑑入り':x.near?'会えた！':'未発見'}</span><h1>${can?esc(c.nameJa):esc(c.teaser)}</h1><p>${can?`${esc(c.years)}・${esc(c.subtitle)}`:'場所へ近づくと正体がわかるよ。'}</p>${can?`<p class="catch">「${esc(c.voice.catchphrase)}」</p>`:''}</div></section><section class="location"><div class="section-head"><div><h3>● ${esc(n.spot.name)}</h3><p>${esc(n.spot.address)}</p></div><span class="distance">${fmt(n.d)}</span></div><p class="muted" style="margin-top:8px">${esc(n.spot.context)}</p>${can?'<p class="note">人物をタップして話を聞こう。</p>':`<button class="btn secondary" style="margin-top:10px" data-a="demo-spot" data-id="${n.spot.id}">この場所へデモ移動</button>`}</section>${can?wealth(c):''}${can?`<section class="story"><div class="speaker"><img src="${img(c.id)}" alt=""><div><h2>${esc(c.nameJa)}の話</h2><p>${esc(c.voice.persona)}</p></div><span class="quote">“</span></div><p class="talk">${esc(c.intro)}</p>${speech(c,'intro')}${x.done?questions(c,active):`<button class="btn primary" style="margin-top:14px" data-a="unlock" data-id="${c.id}">話を聞いた！ 図鑑へ入れる</button>`}<p class="note">${esc(c.dramatizationNote)}</p></section>`:`<section class="card"><h3>もう少し近づこう</h3><p class="muted">現地へ近づくと人物が登場します。自宅テストではデモ移動を使えます。</p></section>`}${x.done?donut(c)+timeline(c)+nodes(c)+photoPanel(c,n.spot):''}</div>`,{name:'character',id:c.id})}
-function book(){shell(`<div class="stack"><section class="hero" style="background:var(--mint)"><p class="eyebrow">COLLECTION</p><h1>人物図鑑</h1><p>出会った人物と、お金のヒミツをコレクション。</p><div class="stats"><div class="stat"><strong>${st.chars.length}/3</strong><span>人物</span></div><div class="stat alt"><strong>${st.nodes.length}</strong><span>関係ノード</span></div></div></section><div class="book">${rt.data.characters.map(c=>{const ok=st.chars.includes(c.id);return`<article class="book-card ${ok?'':'locked'}" data-a="character" data-id="${c.id}"><div class="portrait" style="background:${c.accent}"><img src="${img(c.id)}" alt="${ok?esc(c.nameJa):'未発見人物'}">${ok?`<span class="card-rank">${c.wealth.rank}</span>`:''}</div><div class="copy"><h3>${ok?esc(c.nameJa):'未発見の人物'}</h3><p>${ok?`${esc(c.years)}・戦闘力 ${c.wealth.battlePower.toLocaleString()}`:'街を歩いて見つけよう'}</p></div></article>`}).join('')}</div></div>`,{name:'book'})}
-function settings(){const opts=rt.data.spots.map(s=>`<option value="${s.id}" ${st.demoSpot===s.id?'selected':''}>${esc(s.name)}</option>`).join(''),pc=Object.values(rt.photos).reduce((a,b)=>a+b.length,0);shell(`<div class="stack"><section class="settings"><p class="eyebrow">LOCATION</p><h2>位置情報</h2><p class="muted">現地利用と自宅デモを切り替えます。</p><div class="setting"><div class="toggle-row"><div><label>位置デモ</label><small>選んだスポットへ現在地を移動</small></div><button class="toggle ${st.demo?'on':''}" data-a="toggle"></button></div><select class="select" data-a="demo-select" ${st.demo?'':'disabled'}>${opts}</select></div><div class="setting"><label>ブラウザの現在地</label><small>GitHub PagesのHTTPS環境で利用可能</small><button class="btn secondary" data-a="gps">現在地を取得する</button></div></section><section class="settings"><p class="eyebrow">WEB APP</p><h2>ホーム画面へ追加</h2><p class="muted">iPhoneはSafariの共有メニューから「ホーム画面に追加」を選べます。</p><button class="btn primary" style="margin-top:10px" data-a="install">インストールを試す</button></section><section class="settings"><p class="eyebrow">STORAGE</p><h2>このブラウザの記録</h2><div class="stats"><div class="stat"><strong>${st.chars.length}</strong><span>人物</span></div><div class="stat alt"><strong>${pc}</strong><span>写真</span></div></div><button class="btn ghost" style="margin-top:10px" data-a="reset">記録をリセット</button></section><section class="purchase"><div class="crown">♛</div><h2>Cincinnati 完全版</h2><p class="muted">Web Alphaでは購入画面と解放フローをモックで確認できます。</p><div class="price">$6.99</div><button class="btn primary" data-a="go" data-r="purchase">完全版を見る</button></section></div>`,{name:'settings'})}
-function purchase(){shell(`<section class="purchase"><div class="crown">♛</div><p class="eyebrow">FULL CINCINNATI</p><h1>Cincinnati 完全版</h1><p class="muted">すべての人物、質問、関係ノード、写真アルバムをアンロック。</p><div class="price">$6.99</div><div class="purchase-list"><span>✓ 残りの人物10名以上</span><span>✓ すべての質問と回答</span><span>✓ オフライン利用</span><span>✓ 写真と思い出の保存</span><span>✓ 今後のコンテンツ追加</span></div><button class="btn primary" data-a="buy">${st.full?'購入済み ✓':'Alphaで購入を試す'}</button><button class="btn ghost" style="margin-top:9px" data-a="restore">購入を復元</button><p class="note">Web Alphaはモック購入です。決済は発生しません。</p></section>`,{name:'purchase'})}
-function render(){if(!rt.data)return;if(!st.onboarded)return intro();const r=route();if(r.name==='map')mapView();else if(r.name==='book')book();else if(r.name==='settings')settings();else if(r.name==='purchase')purchase();else if(r.name==='character')characterView(r.id);else home()}
-function demo(id){const s=spot(id);if(!s)return;st.demo=true;st.demoSpot=s.id;save();say(`${s.name}へデモ移動しました`);render()}
-function gps(){if(!navigator.geolocation){rt.error='このブラウザは位置情報に対応していません。';say(rt.error);return render()}if(!window.isSecureContext&&location.hostname!=='localhost'){rt.error='位置情報にはHTTPSが必要です。GitHub Pages公開後に利用できます。';say(rt.error);return render()}st.demo=false;save();say('現在地を取得しています…');navigator.geolocation.getCurrentPosition(p=>{rt.loc={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy};rt.error='';render()},e=>{rt.error=e.code===1?'位置情報が許可されていません。位置デモを使えます。':'現在地を取得できませんでした。';say(rt.error);render()},{enableHighAccuracy:true,timeout:15000,maximumAge:10000})}
-function unlock(id){const c=char(id);if(!c)return;if(!st.chars.includes(id))st.chars.push(id);save();say(`${c.nameJa}が図鑑へ入りました！`);render()}
-function ask(id,qid){const c=char(id),q=c?.questions.find(x=>x.id===qid);if(!q)return;rt.q[id]=qid;q.unlockNodeIds.forEach(n=>{if(!st.nodes.includes(n))st.nodes.push(n)});save();render();requestAnimationFrame(()=>$('.answer')?.scrollIntoView({behavior:'smooth',block:'center'}))}
-function speak(id,kind,qid){if(!window.speechSynthesis)return say('このブラウザでは読み上げを使えません。');const c=char(id);if(!c)return;let text=c.intro;if(kind==='answer')text=c.questions.find(x=>x.id===qid)?.answer||text;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=c.voice.ttsRate;u.pitch=c.voice.ttsPitch;const v=window.speechSynthesis.getVoices().find(x=>x.lang.toLowerCase().startsWith('ja'));if(v)u.voice=v;window.speechSynthesis.speak(u)}
-const DB='ryoppy-photos',STORE='photos';function db(){return new Promise((res,rej)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
-async function allPhotos(){if(!window.indexedDB)return[];const d=await db();return new Promise((res,rej)=>{const t=d.transaction(STORE,'readonly'),q=t.objectStore(STORE).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);t.oncomplete=()=>d.close()})}
-async function putPhoto(x){const d=await db();return new Promise((res,rej)=>{const t=d.transaction(STORE,'readwrite');t.objectStore(STORE).put(x);t.oncomplete=()=>{d.close();res()};t.onerror=()=>rej(t.error)})}
-async function delPhoto(id){const d=await db();return new Promise((res,rej)=>{const t=d.transaction(STORE,'readwrite');t.objectStore(STORE).delete(id);t.oncomplete=()=>{d.close();res()};t.onerror=()=>rej(t.error)})}
-async function wipePhotos(){if(!window.indexedDB)return;const d=await db();return new Promise((res,rej)=>{const t=d.transaction(STORE,'readwrite');t.objectStore(STORE).clear();t.oncomplete=()=>{d.close();res()};t.onerror=()=>rej(t.error)})}
-function release(){rt.urls.forEach(URL.revokeObjectURL);rt.urls=[]}
-async function loadPhotos(){release();rt.photos={};try{const xs=await allPhotos();xs.sort((a,b)=>b.time-a.time);xs.forEach(x=>{const url=URL.createObjectURL(x.blob);rt.urls.push(url);(rt.photos[x.char]??=[]).push({...x,url})})}catch(e){console.warn(e)}}
-async function compress(file){const url=URL.createObjectURL(file);try{const image=new Image();await new Promise((res,rej)=>{image.onload=res;image.onerror=rej;image.src=url});const max=1280,k=Math.min(1,max/Math.max(image.naturalWidth,image.naturalHeight)),w=Math.max(1,Math.round(image.naturalWidth*k)),h=Math.max(1,Math.round(image.naturalHeight*k)),canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff3d9';ctx.fillRect(0,0,w,h);ctx.drawImage(image,0,0,w,h);return await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('compress')),'image/jpeg',.78))}finally{URL.revokeObjectURL(url)}}
-async function savePhoto(input){const f=input.files?.[0];if(!f)return;try{say('写真を保存しています…');const blob=await compress(f),x={id:crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`,char:input.dataset.id,spot:input.dataset.spot,time:Date.now(),blob};await putPhoto(x);await loadPhotos();say('思い出へ写真を追加しました ♥');render()}catch(e){console.error(e);say('写真を保存できませんでした。')}input.value=''}
-async function action(el){const a=el.dataset.a;if(!a)return;if(a==='begin'){st.onboarded=true;save();go('home')}else if(a==='go')go(el.dataset.r||'home');else if(a==='back')history.length>1?history.back():go('home');else if(a==='character')go(`character/${el.dataset.id}`);else if(a==='spot'){rt.spot=el.dataset.id;render()}else if(a==='gps')gps();else if(a==='demo-spot')demo(el.dataset.id);else if(a==='toggle'){st.demo=!st.demo;if(st.demo)demo(st.demoSpot);else{save();gps()}}else if(a==='unlock')unlock(el.dataset.id);else if(a==='question')ask(el.dataset.id,el.dataset.q);else if(a==='speak')speak(el.dataset.id,el.dataset.kind,el.dataset.q);else if(a==='stop')window.speechSynthesis?.cancel();else if(a==='camera')$(`#camera-${el.dataset.id}`)?.click();else if(a==='album')$(`#album-${el.dataset.id}`)?.click();else if(a==='del-photo'){await delPhoto(el.dataset.photoId);await loadPhotos();say('写真を削除しました。');render()}else if(a==='buy'){st.full=true;save();say('完全版をモック解放しました！');render()}else if(a==='restore')say(st.full?'完全版の解放状態を復元しました。':'復元できる購入記録がありません。');else if(a==='install'){if(rt.install){rt.install.prompt();await rt.install.userChoice;rt.install=null}else say('iPhoneはSafariの共有メニューからホーム画面へ追加できます。')}else if(a==='reset'){if(!confirm('人物、関係ノード、写真をすべてリセットしますか？'))return;st.chars=[];st.nodes=[];st.full=false;rt.q={};save();await wipePhotos();await loadPhotos();say('記録をリセットしました。');render()}}
-root.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(el)void action(el)});root.addEventListener('change',e=>{const x=e.target;if(x.matches('[data-a="demo-select"]'))demo(x.value);else if(x.matches('[data-photo]'))void savePhoto(x)});window.addEventListener('hashchange',render);window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();rt.install=e});window.addEventListener('pagehide',release);
-async function init(){try{const r=await fetch('./data/cincinnati-alpha.json');if(!r.ok)throw new Error(String(r.status));rt.data=await r.json();rt.spot=st.demoSpot||rt.data.spots[0].id;await loadPhotos();if(!location.hash)location.hash='#/home';render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn)}catch(e){console.error(e);root.innerHTML='<div class="loading"><img src="./assets/icon.png" alt="りょっぴー"><b>コンテンツを読み込めませんでした。再読み込みしてください。</b></div>'}}
-void init();})();
+(() => {
+  'use strict';
+
+  const root = document.querySelector('#app');
+  const toast = document.querySelector('#toast');
+  const STORE_KEY = 'ryoppy-encounter-v0.2';
+  const CHARACTER_ID = 'christian-moerlein';
+  const SPOT_ID = 'findlay-market';
+  const POSES = {
+    idle: './assets/characters/christian/idle.png',
+    talk: './assets/characters/christian/talk.png',
+    celebrate: './assets/characters/christian/celebrate.png',
+  };
+
+  const saved = loadSaved();
+  const state = {
+    data: null,
+    character: null,
+    spot: null,
+    view: 'boot',
+    revealed: false,
+    storyIndex: 0,
+    selectedQuestion: null,
+    mode: saved.mode || 'demo',
+    location: null,
+    locationBusy: false,
+    error: '',
+    unlocked: Array.isArray(saved.unlocked) ? saved.unlocked : [],
+    nodes: Array.isArray(saved.nodes) ? saved.nodes : [],
+    revealTimer: 0,
+  };
+
+  const storyBeats = [
+    'ようこそ、相棒！ 私はクリスチャン・モーライン。',
+    'バイエルンからシンシナティへ渡り、鍛冶の腕と商売勘を元手に醸造所を始めた。',
+    '私の成功には、この街の移民、鉄道、そして大勢の乾いた喉が詰まっている。さあ、街の続きを見よう！',
+  ];
+
+  const shortAnswers = {
+    'moerlein-money': '鍛冶で働いて腕と評判をつくり、1853年に自分の醸造所を始めた。職人技、量産、流通。この三つで樽を大きな商売へ育てたのさ！',
+    'moerlein-otr': 'Over-the-Rhineには働き手も客も仲間もいた。私はドイツ系移民が集まる街の熱気を、そのまま醸造所の勢いへ変えた。',
+    'moerlein-collapse': '禁酒法で市場そのものが止まり、ビール帝国も動けなくなった。それでも名前と物語は街に残り、後の時代にブランドが復活した！',
+  };
+
+  const nodeLabels = {
+    'brewing-industry': 'シンシナティの醸造産業',
+    'immigrant-enterprise': '移民技能からの起業',
+    'german-otr': 'ドイツ系移民のOTR',
+    'findlay-market-node': 'Findlay Market',
+    prohibition: '禁酒法',
+    'brand-revival': '歴史ブランドの復活',
+  };
+
+  function loadSaved() {
+    try {
+      return JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function save() {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      mode: state.mode,
+      unlocked: state.unlocked,
+      nodes: state.nodes,
+    }));
+  }
+
+  function esc(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function radians(value) {
+    return value * Math.PI / 180;
+  }
+
+  function distanceMeters(a, b) {
+    if (!a || !b) return null;
+    const radius = 6371000;
+    const dLat = radians(b.latitude - a.latitude);
+    const dLon = radians(b.longitude - a.longitude);
+    const h = Math.sin(dLat / 2) ** 2
+      + Math.cos(radians(a.latitude)) * Math.cos(radians(b.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 2 * radius * Math.asin(Math.sqrt(h));
+  }
+
+  function currentDistance() {
+    if (state.mode === 'demo') return 18;
+    return distanceMeters(state.location, state.spot);
+  }
+
+  function formatDistance(value) {
+    if (value == null) return '距離を測定していません';
+    if (value < 1000) return `約${Math.max(1, Math.round(value / 10) * 10)}m`;
+    return `約${(value / 1000).toFixed(1)}km`;
+  }
+
+  function signalStatus() {
+    const distance = currentDistance();
+    const ready = state.mode === 'demo' || (distance != null && distance <= state.spot.radiusM);
+    const strength = ready ? 96 : distance == null ? 18 : clamp(Math.round(100 - distance / 35), 8, 88);
+    return { distance, ready, strength };
+  }
+
+  function isUnlocked() {
+    return state.unlocked.includes(CHARACTER_ID);
+  }
+
+  function topbar(back = false) {
+    return `
+      <header class="topbar">
+        ${back
+          ? '<button class="round-button" data-action="back-to-scan" aria-label="探索へ戻る">←</button>'
+          : '<span class="brand">RYOPPY<span>!</span></span>'}
+        <span class="scene-location">${esc(state.spot?.name || 'Cincinnati')}</span>
+        <span class="collection-count" aria-label="図鑑登録数">${isUnlocked() ? '1' : '0'} / 3</span>
+      </header>`;
+  }
+
+  function particles() {
+    return Array.from({ length: 14 }, (_, index) => {
+      const x = 5 + ((index * 17) % 91);
+      const y = 8 + ((index * 29) % 78);
+      const delay = ((index * 7) % 19) / 10;
+      const size = 5 + (index % 4) * 3;
+      return `<i style="--x:${x}%;--y:${y}%;--delay:${delay}s;--size:${size}px"></i>`;
+    }).join('');
+  }
+
+  function scanTemplate() {
+    const status = signalStatus();
+    const returning = isUnlocked();
+    const headline = returning ? 'あの人物の気配が、戻ってきた。' : '誰かが、すぐ近くにいる。';
+    const buttonLabel = returning ? 'もう一度、会いに行く' : 'この気配に触れる';
+    const locationLabel = state.mode === 'demo'
+      ? `位置デモ・${state.spot.name}`
+      : state.location
+        ? `現在地・${formatDistance(status.distance)}`
+        : '現在地を待っています';
+
+    return `
+      <section class="experience scan-experience">
+        <div class="ambient ambient-one"></div>
+        <div class="ambient ambient-two"></div>
+        <div class="world-grid" aria-hidden="true"></div>
+        ${topbar(false)}
+
+        <main class="scan-main">
+          <div class="scan-copy">
+            <p class="signal-label">SIGNAL 01 · OTR</p>
+            <h1>${headline}</h1>
+            <p>Findlay Marketの方角から、19世紀の誰かの気配がする。近づくほど信号が強くなる。</p>
+          </div>
+
+          <div class="radar-wrap" aria-label="信号強度 ${status.strength}%">
+            <div class="radar-ring ring-three"></div>
+            <div class="radar-ring ring-two"></div>
+            <div class="radar-ring ring-one"></div>
+            <div class="radar-sweep"></div>
+            <div class="signal-core">
+              <span>${status.strength}</span>
+              <small>信号強度</small>
+            </div>
+          </div>
+
+          <section class="scan-panel">
+            <div class="signal-readout">
+              <span class="live-dot"></span>
+              <div>
+                <strong>${esc(locationLabel)}</strong>
+                <span>${status.ready ? '遭遇できる距離です' : '信号の近くへ移動してください'}</span>
+              </div>
+            </div>
+            <button class="primary-action" data-action="start-encounter" ${status.ready ? '' : 'disabled'}>
+              ${buttonLabel}
+            </button>
+            <button class="text-action" data-action="use-gps" ${state.locationBusy ? 'disabled' : ''}>
+              ${state.locationBusy ? '現在地を取得中…' : '実際の現在地で探す'}
+            </button>
+            ${state.mode === 'gps' ? '<button class="text-action quiet" data-action="use-demo">位置デモへ戻る</button>' : ''}
+            ${state.error ? `<p class="error-message">${esc(state.error)}</p>` : ''}
+          </section>
+        </main>
+      </section>`;
+  }
+
+  function poseForView() {
+    if (state.view === 'reward') return 'celebrate';
+    if (['story', 'questions', 'answer'].includes(state.view)) return 'talk';
+    return 'idle';
+  }
+
+  function revealPanel() {
+    if (!state.revealed) {
+      return `
+        <section class="dialogue-panel compact-panel analyzing" aria-live="assertive">
+          <p class="panel-kicker">古い通信を復元中</p>
+          <h1>人物の輪郭が見えてきた…</h1>
+          <div class="loading-line"><span></span></div>
+        </section>`;
+    }
+    return `
+      <section class="dialogue-panel compact-panel reveal-panel">
+        <p class="panel-kicker">初遭遇</p>
+        <h1>${esc(state.character.nameJa)}</h1>
+        <p class="character-years">${esc(state.character.years)} · ${esc(state.character.subtitle)}</p>
+        <blockquote>「${esc(state.character.voice.catchphrase)}」</blockquote>
+        <button class="primary-action" data-action="start-story">話しかける</button>
+      </section>`;
+  }
+
+  function storyPanel() {
+    const last = state.storyIndex === storyBeats.length - 1;
+    const dots = storyBeats.map((_, index) => `<span class="${index === state.storyIndex ? 'active' : ''}"></span>`).join('');
+    return `
+      <section class="dialogue-panel story-panel">
+        <div class="story-head">
+          <div>
+            <p class="panel-kicker">クリスチャン</p>
+            <div class="story-progress" aria-label="${state.storyIndex + 1} / ${storyBeats.length}">${dots}</div>
+          </div>
+          <button class="voice-button" data-action="speak" aria-label="この台詞を読み上げる">▶ 聞く</button>
+        </div>
+        <p class="story-text">${esc(storyBeats[state.storyIndex])}</p>
+        <button class="primary-action" data-action="next-story">${last ? 'もっと聞いてみる' : '次の話へ'}</button>
+      </section>`;
+  }
+
+  function questionsPanel() {
+    return `
+      <section class="dialogue-panel question-panel">
+        <p class="panel-kicker">本人へ質問する</p>
+        <h1>何を聞いてみる？</h1>
+        <div class="question-list">
+          ${state.character.questions.map((question, index) => `
+            <button data-action="choose-question" data-question="${esc(question.id)}">
+              <span>0${index + 1}</span>${esc(question.question)}
+            </button>`).join('')}
+        </div>
+      </section>`;
+  }
+
+  function answerPanel() {
+    const question = state.character.questions.find(item => item.id === state.selectedQuestion);
+    const unlockedNodes = question.unlockNodeIds
+      .map(id => state.data.relationNodes.find(node => node.id === id))
+      .filter(Boolean);
+    return `
+      <section class="dialogue-panel answer-panel">
+        <div class="story-head">
+          <p class="panel-kicker">${esc(question.question)}</p>
+          <button class="voice-button" data-action="speak" aria-label="答えを読み上げる">▶ 聞く</button>
+        </div>
+        <p class="answer-text">${esc(shortAnswers[question.id] || question.answer)}</p>
+        <div class="connection-preview">
+          <span>つながりを発見</span>
+          ${unlockedNodes.map(node => `<strong>${esc(nodeLabels[node.id] || node.title)}</strong>`).join('')}
+        </div>
+        <button class="primary-action" data-action="unlock-character">図鑑に記録する</button>
+      </section>`;
+  }
+
+  function rewardPanel() {
+    const question = state.character.questions.find(item => item.id === state.selectedQuestion)
+      || state.character.questions[0];
+    const node = state.data.relationNodes.find(item => item.id === question.unlockNodeIds[0]);
+    return `
+      <section class="dialogue-panel reward-panel">
+        <p class="panel-kicker">図鑑に新しく記録</p>
+        <h1>${esc(state.character.nameJa)}</h1>
+        <p>街をつくった人物と、ひとつの歴史がつながった。</p>
+        <div class="reward-chip"><span>獲得</span>${esc(nodeLabels[node?.id] || node?.title || 'Cincinnatiの歴史')}</div>
+        <button class="primary-action" data-action="back-to-scan">次の信号を探す</button>
+      </section>`;
+  }
+
+  function panelForView() {
+    if (state.view === 'reveal') return revealPanel();
+    if (state.view === 'story') return storyPanel();
+    if (state.view === 'questions') return questionsPanel();
+    if (state.view === 'answer') return answerPanel();
+    return rewardPanel();
+  }
+
+  function encounterTemplate() {
+    const pose = poseForView();
+    const silhouette = state.view === 'reveal' && !state.revealed;
+    return `
+      <section class="experience encounter-experience view-${state.view} ${state.revealed ? 'is-revealed' : ''}">
+        <div class="encounter-burst" aria-hidden="true"></div>
+        <div class="particle-field" aria-hidden="true">${particles()}</div>
+        ${topbar(true)}
+        <p class="encounter-signal">SIGNAL 01 · ${esc(state.spot.name)}</p>
+
+        <main class="character-stage">
+          <div class="character-drift ${state.view === 'reward' ? 'reward-drift' : ''}">
+            <div class="character-breathe">
+              <img class="character-image ${silhouette ? 'silhouette' : ''}" src="${POSES[pose]}" alt="${silhouette ? 'まだ正体の分からない人物' : esc(state.character.nameJa)}">
+            </div>
+          </div>
+          <div class="character-shadow" aria-hidden="true"></div>
+        </main>
+
+        ${panelForView()}
+      </section>`;
+  }
+
+  function render() {
+    root.innerHTML = state.view === 'scan' ? scanTemplate() : encounterTemplate();
+    document.body.dataset.view = state.view;
+    requestAnimationFrame(() => {
+      startCharacterDrift();
+      root.querySelector('button:not([disabled])')?.focus({ preventScroll: true });
+    });
+  }
+
+  function startCharacterDrift() {
+    const element = root.querySelector('.character-drift');
+    if (!element || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const drift = () => {
+      if (!element.isConnected) return;
+      const x = Math.round((Math.random() - 0.5) * 28);
+      const y = Math.round((Math.random() - 0.5) * 34);
+      const rotate = (Math.random() - 0.5) * 3.4;
+      const duration = 3800 + Math.random() * 2800;
+      const currentTransform = getComputedStyle(element).transform;
+      const animation = element.animate([
+        { transform: currentTransform === 'none' ? 'translate3d(0,0,0)' : currentTransform },
+        { transform: `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg)` },
+      ], {
+        duration,
+        easing: 'ease-in-out',
+        fill: 'forwards',
+      });
+      animation.finished.then(drift).catch(() => {});
+    };
+    drift();
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  function startEncounter() {
+    clearTimeout(state.revealTimer);
+    state.view = 'reveal';
+    state.revealed = false;
+    state.storyIndex = 0;
+    state.selectedQuestion = null;
+    navigator.vibrate?.([35, 65, 55]);
+    render();
+    state.revealTimer = setTimeout(() => {
+      if (state.view !== 'reveal') return;
+      state.revealed = true;
+      render();
+    }, 1250);
+  }
+
+  function speakCurrent() {
+    if (!window.speechSynthesis) {
+      showToast('このブラウザは読み上げに対応していません。');
+      return;
+    }
+    let text = storyBeats[state.storyIndex];
+    if (state.view === 'answer') {
+      const question = state.character.questions.find(item => item.id === state.selectedQuestion);
+      text = shortAnswers[question?.id] || question?.answer || text;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    utterance.rate = state.character.voice.ttsRate;
+    utterance.pitch = state.character.voice.ttsPitch;
+    const voice = window.speechSynthesis.getVoices().find(item => item.lang.toLowerCase().startsWith('ja'));
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      state.error = 'この端末では現在地を取得できません。';
+      render();
+      return;
+    }
+    if (!window.isSecureContext && location.hostname !== 'localhost') {
+      state.error = '現在地の利用にはHTTPSが必要です。';
+      render();
+      return;
+    }
+    state.locationBusy = true;
+    state.error = '';
+    render();
+    navigator.geolocation.getCurrentPosition(position => {
+      state.location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+      state.mode = 'gps';
+      state.locationBusy = false;
+      save();
+      render();
+    }, error => {
+      state.locationBusy = false;
+      state.error = error.code === 1
+        ? '現在地が許可されていません。位置デモならすぐ試せます。'
+        : '現在地を取得できませんでした。';
+      render();
+    }, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 10000,
+    });
+  }
+
+  function unlockCharacter() {
+    const question = state.character.questions.find(item => item.id === state.selectedQuestion)
+      || state.character.questions[0];
+    if (!state.unlocked.includes(CHARACTER_ID)) state.unlocked.push(CHARACTER_ID);
+    for (const node of question.unlockNodeIds) {
+      if (!state.nodes.includes(node)) state.nodes.push(node);
+    }
+    save();
+    state.view = 'reward';
+    navigator.vibrate?.([55, 45, 90]);
+    render();
+  }
+
+  async function handleAction(button) {
+    const action = button.dataset.action;
+    if (action === 'start-encounter') startEncounter();
+    else if (action === 'start-story') {
+      state.view = 'story';
+      state.storyIndex = 0;
+      render();
+    } else if (action === 'next-story') {
+      if (state.storyIndex < storyBeats.length - 1) state.storyIndex += 1;
+      else state.view = 'questions';
+      render();
+    } else if (action === 'choose-question') {
+      state.selectedQuestion = button.dataset.question;
+      state.view = 'answer';
+      render();
+    } else if (action === 'unlock-character') unlockCharacter();
+    else if (action === 'back-to-scan') {
+      clearTimeout(state.revealTimer);
+      window.speechSynthesis?.cancel();
+      state.view = 'scan';
+      render();
+    } else if (action === 'speak') speakCurrent();
+    else if (action === 'use-gps') useCurrentLocation();
+    else if (action === 'use-demo') {
+      state.mode = 'demo';
+      state.location = null;
+      state.error = '';
+      save();
+      render();
+    }
+  }
+
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-action]');
+    if (button && !button.disabled) void handleAction(button);
+  });
+
+  async function init() {
+    try {
+      const response = await fetch('./data/cincinnati-alpha.json');
+      if (!response.ok) throw new Error(`data ${response.status}`);
+      state.data = await response.json();
+      state.character = state.data.characters.find(item => item.id === CHARACTER_ID);
+      state.spot = state.data.spots.find(item => item.id === SPOT_ID);
+      if (!state.character || !state.spot) throw new Error('encounter data missing');
+      state.view = 'scan';
+      render();
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.warn);
+    } catch (error) {
+      console.error(error);
+      root.innerHTML = `
+        <section class="fatal-error">
+          <strong>街の信号を読み込めませんでした。</strong>
+          <button class="primary-action" onclick="location.reload()">もう一度試す</button>
+        </section>`;
+    }
+  }
+
+  void init();
+})();

@@ -10,6 +10,9 @@ const required = [
   'assets/characters/christian-moerlein.png',
   'assets/characters/samuel-hannaford.png',
   'assets/characters/levi-coffin.png',
+  'assets/characters/christian/idle.png',
+  'assets/characters/christian/talk.png',
+  'assets/characters/christian/celebrate.png',
   '.github/workflows/deploy-pages.yml',
 ];
 
@@ -84,7 +87,7 @@ new vm.Script(read('app.js'));
 new vm.Script(read('sw.js'));
 
 const app = read('app.js');
-for (const capability of ['navigator.geolocation', 'speechSynthesis', 'indexedDB', 'serviceWorker']) {
+for (const capability of ['navigator.geolocation', 'speechSynthesis', 'serviceWorker']) {
   if (!app.includes(capability)) throw new Error(`Missing browser capability: ${capability}`);
 }
 
@@ -94,6 +97,20 @@ for (const file of ['index.html', 'styles.css', 'app.js', 'README.md', 'docs/WEB
   for (const phrase of blockedCopy) {
     if (source.includes(phrase)) throw new Error(`Copy rule: ${file}`);
   }
+}
+
+for (const phrase of ['デート向け', 'デートの小ネタ', '$6.99']) {
+  if (app.includes(phrase)) throw new Error(`Retired concept leaked into app: ${phrase}`);
+}
+
+for (const pose of ['idle.png', 'talk.png', 'celebrate.png']) {
+  if (!app.includes(pose) || !workflowSafeAsset(`assets/characters/christian/${pose}`)) {
+    throw new Error(`Encounter pose is not wired: ${pose}`);
+  }
+}
+
+function workflowSafeAsset(file) {
+  return fs.existsSync(path.join(root, file));
 }
 
 const workflow = read('.github/workflows/deploy-pages.yml');
