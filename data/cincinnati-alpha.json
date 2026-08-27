@@ -1,0 +1,681 @@
+{
+  "id": "cincinnati-alpha",
+  "version": "0.2.0",
+  "name": "Cincinnati Alpha — Retro Date Edition",
+  "regionLabel": "Streetcar Corridor",
+  "center": {
+    "latitude": 39.1068,
+    "longitude": -84.5157,
+    "latitudeDelta": 0.028,
+    "longitudeDelta": 0.022
+  },
+  "characters": [
+    {
+      "id": "christian-moerlein",
+      "name": "Christian Moerlein",
+      "nameJa": "クリスチャン・モーライン",
+      "years": "1818–1897",
+      "subtitle": "一杯から醸造帝国を育てたビール王",
+      "teaser": "陽気なビール王が待っている",
+      "emoji": "🍺",
+      "accent": "#2B8C83",
+      "intro": "ようこそ、相棒！ 私はクリスチャン・モーライン。バイエルンからシンシナティへ渡り、鍛冶の腕と商売勘を元手に醸造所を始めた。樽を増やし、客を増やし、ついには全米へビールを届けた。さあ、街を歩こう。私の成功には、この土地の移民、鉄道、そして大勢の乾いた喉が詰まっているぞ！",
+      "dramatizationNote": "史実をもとに作ったキャラクター台詞です。",
+      "free": true,
+      "spotIds": [
+        "rhinegeist",
+        "findlay-market"
+      ],
+      "sourceIds": [
+        "moerlein-history",
+        "rhinegeist-history",
+        "visitcincy-beer"
+      ],
+      "questions": [
+        {
+          "id": "moerlein-money",
+          "question": "どうやって大金を稼いだの？",
+          "answer": "いい質問だ！ 最初の元手は、私の腕と評判だ。鍛冶で働き、醸造を覚え、1853年に自分の看板を掲げた。ドイツ系移民の街でラガー需要をつかみ、生産量と配送先を一気に増やした。職人技、量産、流通。この三つがそろえば、樽は金に変わる。さあ、祝杯だ！",
+          "unlockNodeIds": [
+            "brewing-industry",
+            "immigrant-enterprise"
+          ]
+        },
+        {
+          "id": "moerlein-otr",
+          "question": "この街を選んだ理由は？",
+          "answer": "Over-the-Rhineには、働き手も客も仲間もいた。ドイツ語が飛び交い、音楽が鳴り、食卓にはビールが並ぶ。商売は商品だけで育たない。人が集まり、習慣が根づく場所で育つ。私は街の熱気を、そのまま醸造所の勢いへ変えたのさ！",
+          "unlockNodeIds": [
+            "german-otr",
+            "findlay-market-node"
+          ]
+        },
+        {
+          "id": "moerlein-collapse",
+          "question": "ビール帝国はどうなった？",
+          "answer": "私の名は広がった。だが、禁酒法が市場ごと止めた。工場も樽も、売る場所が消えれば動けない。それでも名前と物語は街に残り、後の世でブランドが復活した。商売の建物は消えても、街が覚えていれば乾杯は戻ってくる！",
+          "unlockNodeIds": [
+            "prohibition",
+            "brand-revival"
+          ]
+        }
+      ],
+      "secondaryAccent": "#E86668",
+      "voice": {
+        "persona": "陽気で豪快な商売人。成功談を祝杯へ結びつける。",
+        "catchphrase": "さあ、祝杯だ！",
+        "rhythm": "テンポが速く、得意げ。短い感嘆を多く使う。",
+        "ttsRate": 0.98,
+        "ttsPitch": 1.03,
+        "motif": "ビール、樽、祝杯、商売"
+      },
+      "wealth": {
+        "modernUsd": 42000000,
+        "modernUsdYear": 2026,
+        "battlePower": 9800,
+        "rank": "S",
+        "estimateLabel": "2026年ドル換算・Alpha仮推定",
+        "oneLine": "醸造所、流通網、不動産を束ねたビール帝国。",
+        "composition": [
+          {
+            "id": "brewery",
+            "label": "ビール醸造",
+            "percent": 65,
+            "color": "#2B8C83",
+            "icon": "🍺"
+          },
+          {
+            "id": "operations",
+            "label": "醸造設備・事業持分",
+            "percent": 20,
+            "color": "#E2A73B",
+            "icon": "🏭"
+          },
+          {
+            "id": "real-estate",
+            "label": "不動産",
+            "percent": 10,
+            "color": "#E86668",
+            "icon": "🏠"
+          },
+          {
+            "id": "other",
+            "label": "その他",
+            "percent": 5,
+            "color": "#36536A",
+            "icon": "★"
+          }
+        ],
+        "timeline": [
+          {
+            "year": 1853,
+            "modernUsd": 500000,
+            "label": "醸造所を開始"
+          },
+          {
+            "year": 1860,
+            "modernUsd": 6000000
+          },
+          {
+            "year": 1870,
+            "modernUsd": 12000000
+          },
+          {
+            "year": 1880,
+            "modernUsd": 22000000
+          },
+          {
+            "year": 1890,
+            "modernUsd": 35000000,
+            "label": "全米へ拡大"
+          },
+          {
+            "year": 1897,
+            "modernUsd": 42000000,
+            "label": "推定ピーク"
+          }
+        ]
+      }
+    },
+    {
+      "id": "samuel-hannaford",
+      "name": "Samuel Hannaford",
+      "nameJa": "サミュエル・ハナフォード",
+      "years": "1835–1911",
+      "subtitle": "街の野心を線と石に変えた建築家",
+      "teaser": "設計図を抱えた名建築家",
+      "emoji": "🏛️",
+      "accent": "#36536A",
+      "intro": "まず、建物の上を見てみなさい。私はサミュエル・ハナフォード。柱の間隔、窓のリズム、塔の高さ。街の自信は細部に宿る。Music HallやCity Hallを任された頃、シンシナティは自分を大都市として見せたがっていた。私はその野心へ形を与えた。さて、君はどの線に目を奪われるかな。",
+      "dramatizationNote": "史実をもとに作ったキャラクター台詞です。",
+      "free": true,
+      "spotIds": [
+        "music-hall",
+        "city-hall"
+      ],
+      "sourceIds": [
+        "hannaford-library",
+        "city-hall-official",
+        "music-hall-official"
+      ],
+      "questions": [
+        {
+          "id": "hannaford-career",
+          "question": "どうやって売れっ子になった？",
+          "answer": "一枚の派手な設計図で名声が決まるほど、建築は軽くない。私は小さな仕事を積み、顧客の信頼を重ね、大型案件を任される事務所へ育てた。評判は石積みと同じだ。一段ずつ置き、崩れない形にする。長い仕事の連続が、最も大きな資産になった。",
+          "unlockNodeIds": [
+            "architectural-practice",
+            "civic-patronage"
+          ]
+        },
+        {
+          "id": "hannaford-music-hall",
+          "question": "Music Hallの見どころは？",
+          "answer": "正面の大きさだけを見て終えるのは惜しい。中央の音楽ホールと両翼の展示空間を一つにまとめ、文化と産業を同じ舞台へ載せた。街は音楽を愛し、同時に自分の繁栄も見せたかった。その二つの願いを、煉瓦の輪郭へ整理した。",
+          "unlockNodeIds": [
+            "music-hall-node",
+            "industrial-expositions"
+          ]
+        },
+        {
+          "id": "hannaford-city-hall",
+          "question": "City Hallが豪華な理由は？",
+          "answer": "市庁舎は行政の器であり、街の名刺でもある。塔、石材、装飾は、成長する都市の信用と自信を表す。豪華さには目的がある。遠くから見ても「この街は続く」と伝えるためだ。建物は、言葉より長く政治の姿勢を語る。",
+          "unlockNodeIds": [
+            "city-hall-node",
+            "civic-power"
+          ]
+        }
+      ],
+      "secondaryAccent": "#E2A73B",
+      "voice": {
+        "persona": "几帳面で誇り高い建築家。構造と美しさを観察する。",
+        "catchphrase": "まず、上を見なさい。",
+        "rhythm": "落ち着いた短文。観察を促し、言葉を慎重に選ぶ。",
+        "ttsRate": 0.84,
+        "ttsPitch": 0.92,
+        "motif": "設計図、線、石、塔、均衡"
+      },
+      "wealth": {
+        "modernUsd": 7500000,
+        "modernUsdYear": 2026,
+        "battlePower": 6800,
+        "rank": "A",
+        "estimateLabel": "2026年ドル換算・Alpha仮推定",
+        "oneLine": "大型公共建築と長寿の建築事務所が富の核。",
+        "composition": [
+          {
+            "id": "fees",
+            "label": "設計料・事務所収益",
+            "percent": 70,
+            "color": "#36536A",
+            "icon": "📐"
+          },
+          {
+            "id": "property",
+            "label": "不動産",
+            "percent": 20,
+            "color": "#2B8C83",
+            "icon": "🏠"
+          },
+          {
+            "id": "other",
+            "label": "その他",
+            "percent": 10,
+            "color": "#E2A73B",
+            "icon": "★"
+          }
+        ],
+        "timeline": [
+          {
+            "year": 1854,
+            "modernUsd": 250000,
+            "label": "独立"
+          },
+          {
+            "year": 1870,
+            "modernUsd": 1500000
+          },
+          {
+            "year": 1878,
+            "modernUsd": 3200000,
+            "label": "Music Hall"
+          },
+          {
+            "year": 1893,
+            "modernUsd": 6200000,
+            "label": "City Hall"
+          },
+          {
+            "year": 1900,
+            "modernUsd": 7500000,
+            "label": "引退期"
+          }
+        ]
+      }
+    },
+    {
+      "id": "levi-coffin",
+      "name": "Levi Coffin",
+      "nameJa": "レヴィ・コフィン",
+      "years": "1798–1877",
+      "subtitle": "商いと行動で自由への道を支えた商人",
+      "teaser": "静かなランタンを持つ商人",
+      "emoji": "🕯️",
+      "accent": "#6D8C6A",
+      "intro": "扉を開けよう。私はレヴィ・コフィン。シンシナティへ来たのは、自由を求める人を助け、奴隷労働に頼らない商品の道を作るためだ。正しいと思うだけで世の中は動かない。家を開け、品物を仕入れ、金を集め、人をつなぐ。静かな行動を重ねると、一本の道になる。君にも、その道を見てほしい。",
+      "dramatizationNote": "史実をもとに作ったキャラクター台詞です。",
+      "free": true,
+      "spotIds": [
+        "freedom-center",
+        "ohio-river-view"
+      ],
+      "sourceIds": [
+        "nps-coffin",
+        "cincinnati-friends-coffin",
+        "freedom-center"
+      ],
+      "questions": [
+        {
+          "id": "coffin-cincinnati",
+          "question": "なぜシンシナティへ来た？",
+          "answer": "ここには川、商流、人の移動が集まっていた。自由州オハイオと奴隷州ケンタッキーの境目でもある。助けを必要とする人へ手を伸ばすにも、奴隷労働に頼らない商品を広げるにも、この街の物流と人脈が重要だった。道を変えるなら、道が交わる場所へ立つ。",
+          "unlockNodeIds": [
+            "free-produce",
+            "cincinnati-border-city"
+          ]
+        },
+        {
+          "id": "coffin-free-labor",
+          "question": "Free Produceって何？",
+          "answer": "奴隷労働で作られた綿や砂糖を避け、自由な労働で作られた商品を選ぶ運動だ。買い物は小さな投票になる。価格も供給も厳しく、広げるのは難しかった。それでも別の流通を作ることで、消費と人権を一本の線で結んだ。",
+          "unlockNodeIds": [
+            "free-labor-movement",
+            "ethical-consumption"
+          ]
+        },
+        {
+          "id": "coffin-river",
+          "question": "オハイオ川は何を意味した？",
+          "answer": "川の南には奴隷州ケンタッキー、北には自由州オハイオがあった。渡河は命をかけた境界越えだ。北岸へ着いた後も捕獲の危険は続いた。だから家、馬車、食料、案内役をつなぐ支援網が必要だった。川を見れば、自由への距離が短くても重かったことが分かる。",
+          "unlockNodeIds": [
+            "underground-railroad",
+            "ohio-river-border"
+          ]
+        }
+      ],
+      "secondaryAccent": "#E86668",
+      "voice": {
+        "persona": "静かで芯が強い商人。行動、扉、道を軸に話す。",
+        "catchphrase": "扉を開けよう。",
+        "rhythm": "短く直接的。声量を抑え、決意を感じさせる。",
+        "ttsRate": 0.78,
+        "ttsPitch": 0.88,
+        "motif": "扉、道、灯り、自由、商い"
+      },
+      "wealth": {
+        "modernUsd": 1800000,
+        "modernUsdYear": 2026,
+        "battlePower": 3800,
+        "rank": "B",
+        "estimateLabel": "2026年ドル換算・Alpha仮推定",
+        "oneLine": "商業収益を救援活動と代替流通へ振り向けた。",
+        "composition": [
+          {
+            "id": "trade",
+            "label": "小売・卸売",
+            "percent": 55,
+            "color": "#6D8C6A",
+            "icon": "📦"
+          },
+          {
+            "id": "property",
+            "label": "不動産・店舗",
+            "percent": 20,
+            "color": "#36536A",
+            "icon": "🏠"
+          },
+          {
+            "id": "free-produce",
+            "label": "Free Produce事業",
+            "percent": 15,
+            "color": "#E86668",
+            "icon": "🧺"
+          },
+          {
+            "id": "other",
+            "label": "その他",
+            "percent": 10,
+            "color": "#E2A73B",
+            "icon": "★"
+          }
+        ],
+        "timeline": [
+          {
+            "year": 1826,
+            "modernUsd": 250000,
+            "label": "商店経営"
+          },
+          {
+            "year": 1840,
+            "modernUsd": 700000
+          },
+          {
+            "year": 1847,
+            "modernUsd": 1000000,
+            "label": "Cincinnatiへ"
+          },
+          {
+            "year": 1860,
+            "modernUsd": 1500000
+          },
+          {
+            "year": 1870,
+            "modernUsd": 1800000,
+            "label": "推定ピーク"
+          }
+        ]
+      }
+    }
+  ],
+  "spots": [
+    {
+      "id": "rhinegeist",
+      "name": "Rhinegeist Brewery",
+      "address": "1910 Elm St, Cincinnati, OH 45202",
+      "latitude": 39.11735,
+      "longitude": -84.52032,
+      "radiusM": 150,
+      "manualRadiusM": 350,
+      "characterIds": [
+        "christian-moerlein"
+      ],
+      "context": "旧Christian Moerlein系のボトリング施設に入る現代の醸造所。建物外からでも判定可能。"
+    },
+    {
+      "id": "findlay-market",
+      "name": "Findlay Market",
+      "address": "1801 Race St, Cincinnati, OH 45202",
+      "latitude": 39.11537,
+      "longitude": -84.518219,
+      "radiusM": 150,
+      "manualRadiusM": 350,
+      "characterIds": [
+        "christian-moerlein"
+      ],
+      "context": "19世紀のOTRに広がった商業と移民街の密度を体感する補助スポット。モーライン本人の所有地として扱わない。"
+    },
+    {
+      "id": "music-hall",
+      "name": "Cincinnati Music Hall",
+      "address": "1241 Elm St, Cincinnati, OH 45202",
+      "latitude": 39.1095,
+      "longitude": -84.5192,
+      "radiusM": 150,
+      "manualRadiusM": 350,
+      "characterIds": [
+        "samuel-hannaford"
+      ],
+      "context": "1878年に完成したハナフォードの代表作。外観から判定可能。"
+    },
+    {
+      "id": "city-hall",
+      "name": "Cincinnati City Hall",
+      "address": "801 Plum St, Cincinnati, OH 45202",
+      "latitude": 39.10426,
+      "longitude": -84.51907,
+      "radiusM": 150,
+      "manualRadiusM": 350,
+      "characterIds": [
+        "samuel-hannaford"
+      ],
+      "context": "1893年完成の市庁舎。営業時間外でも外観から判定可能。"
+    },
+    {
+      "id": "freedom-center",
+      "name": "National Underground Railroad Freedom Center",
+      "address": "50 E Freedom Way, Cincinnati, OH 45202",
+      "latitude": 39.0976,
+      "longitude": -84.5113,
+      "radiusM": 150,
+      "manualRadiusM": 350,
+      "characterIds": [
+        "levi-coffin"
+      ],
+      "context": "地下鉄道と自由を扱う博物館。入館せず外からでも判定可能。"
+    },
+    {
+      "id": "ohio-river-view",
+      "name": "Ohio River View / Roebling Bridge North Approach",
+      "address": "Smale Riverfront Park, Cincinnati, OH 45202",
+      "latitude": 39.09533,
+      "longitude": -84.50985,
+      "radiusM": 170,
+      "manualRadiusM": 400,
+      "characterIds": [
+        "levi-coffin"
+      ],
+      "context": "橋そのものはコフィンの主要活動期より後の建設。オハイオ川という境界を理解する眺望地点として使用する。"
+    }
+  ],
+  "relationNodes": [
+    {
+      "id": "brewing-industry",
+      "type": "industry",
+      "title": "Cincinnati Brewing Industry",
+      "summary": "移民文化、地下貯蔵、輸送、量産が結びついた都市産業。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "immigrant-enterprise",
+      "type": "wealth_method",
+      "title": "移民技能からの起業",
+      "summary": "持ち込んだ技能と地域需要を組み合わせて事業を拡大する。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "german-otr",
+      "type": "social_impact",
+      "title": "German Over-the-Rhine",
+      "summary": "ドイツ系移民の言語、飲食、音楽、事業が集中した地域。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "findlay-market-node",
+      "type": "place",
+      "title": "Findlay Market",
+      "summary": "OTRの日常商業と地域コミュニティを現在までつなぐ市場。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "prohibition",
+      "type": "event",
+      "title": "National Prohibition",
+      "summary": "市場を法的に消し、旧来の醸造会社を停止させた制度変化。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "brand-revival",
+      "type": "legacy",
+      "title": "Historic Brand Revival",
+      "summary": "会社が消えても、都市記憶と名称が後世の事業資産として復活する。",
+      "characterIds": [
+        "christian-moerlein"
+      ]
+    },
+    {
+      "id": "architectural-practice",
+      "type": "wealth_method",
+      "title": "建築事務所の信用蓄積",
+      "summary": "多数の案件と長期の顧客関係で大型公共案件へ進む。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "civic-patronage",
+      "type": "social_impact",
+      "title": "有力者と市民の資金",
+      "summary": "公共的な記念建築を支えた寄付、委員会、都市競争。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "music-hall-node",
+      "type": "place",
+      "title": "Cincinnati Music Hall",
+      "summary": "音楽と産業展示を同時に収容した都市の舞台。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "industrial-expositions",
+      "type": "event",
+      "title": "Industrial Expositions",
+      "summary": "都市の製造力と商業力を展示し、外部へ示すイベント。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "city-hall-node",
+      "type": "place",
+      "title": "Cincinnati City Hall",
+      "summary": "行政機能と都市の威信を一体化した公共建築。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "civic-power",
+      "type": "social_impact",
+      "title": "公共建築による権威",
+      "summary": "石、塔、装飾によって都市政府の信用と野心を見せる。",
+      "characterIds": [
+        "samuel-hannaford"
+      ]
+    },
+    {
+      "id": "free-produce",
+      "type": "company",
+      "title": "Western Free Produce Association",
+      "summary": "奴隷労働に依存しない商品流通を作ろうとした事業。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    },
+    {
+      "id": "cincinnati-border-city",
+      "type": "place",
+      "title": "Border Commercial City",
+      "summary": "自由州と奴隷州の境界で、人、商品、資金が集中したシンシナティ。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    },
+    {
+      "id": "free-labor-movement",
+      "type": "social_impact",
+      "title": "Free-Labor Movement",
+      "summary": "労働条件と商品の由来を市場選択へ結びつける運動。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    },
+    {
+      "id": "ethical-consumption",
+      "type": "legacy",
+      "title": "Ethical Consumption",
+      "summary": "購入判断を社会制度への圧力として使う発想の先例。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    },
+    {
+      "id": "underground-railroad",
+      "type": "event",
+      "title": "Underground Railroad",
+      "summary": "逃亡する人々を食料、宿、移動、情報で支えた秘密のネットワーク。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    },
+    {
+      "id": "ohio-river-border",
+      "type": "place",
+      "title": "Ohio River Border",
+      "summary": "奴隷州と自由州を隔てた地理的境界。ただし渡河後も安全は保証されなかった。",
+      "characterIds": [
+        "levi-coffin"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "moerlein-history",
+      "title": "Christian Moerlein History",
+      "publisher": "Christian Moerlein Brewing Co.",
+      "url": "https://www.christianmoerlein.com/christian-moerlein-history/"
+    },
+    {
+      "id": "rhinegeist-history",
+      "title": "Visit Us: Historic Bottling Plant",
+      "publisher": "Rhinegeist Brewery",
+      "url": "https://rhinegeist.com/visit-us/"
+    },
+    {
+      "id": "visitcincy-beer",
+      "title": "Cincinnati Brewing History",
+      "publisher": "Visit Cincy",
+      "url": "https://www.visitcincy.com/blog/post/built-on-beer-the-cincinnati-regions-brewing-history/"
+    },
+    {
+      "id": "hannaford-library",
+      "title": "Samuel Hannaford Helped Build the Foundation of Cincinnati",
+      "publisher": "Cincinnati & Hamilton County Public Library",
+      "url": "https://chpl.org/blogs/post/throwback-thursday-samuel-hannaford-helped-build-the-foundation-of-cincinnati/"
+    },
+    {
+      "id": "city-hall-official",
+      "title": "Welcome to City Hall",
+      "publisher": "City of Cincinnati",
+      "url": "https://www.cincinnati-oh.gov/council/welcome-to-city-hall/"
+    },
+    {
+      "id": "music-hall-official",
+      "title": "Cincinnati Music Hall",
+      "publisher": "Cincinnati Arts Association",
+      "url": "https://www.cincinnatiarts.org/music-hall"
+    },
+    {
+      "id": "nps-coffin",
+      "title": "Levi Coffin",
+      "publisher": "U.S. National Park Service",
+      "url": "https://www.nps.gov/people/levi-coffin.htm"
+    },
+    {
+      "id": "cincinnati-friends-coffin",
+      "title": "Levi Coffin (1798–1877)",
+      "publisher": "Cincinnati Friends Meeting",
+      "url": "https://cincinnatifriends.org/about-us/our-history/levi-coffin"
+    },
+    {
+      "id": "freedom-center",
+      "title": "National Underground Railroad Freedom Center",
+      "publisher": "Freedom Center",
+      "url": "https://freedomcenter.org/"
+    }
+  ]
+}

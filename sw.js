@@ -1,0 +1,5 @@
+const CACHE='ryoppy-web-v0.1.0';
+const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./data/cincinnati-alpha.json','./assets/icon.png','./assets/splash-icon.png','./assets/characters/christian-moerlein.png','./assets/characters/samuel-hannaford.png','./assets/characters/levi-coffin.png'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(x=>new URL(x,self.registration.scope).toString()))).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(xs=>Promise.all(xs.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;if(e.request.mode==='navigate'){e.respondWith(fetch(e.request).catch(()=>caches.match(new URL('./index.html',self.registration.scope).toString())));return}e.respondWith(caches.match(e.request).then(x=>x||fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}))) });
