@@ -1,4 +1,4 @@
-const CACHE = 'ryoppy-encounter-v0.2.0';
+const CACHE = 'ryoppy-explore-v0.3.0';
 const FILES = [
   './',
   './index.html',

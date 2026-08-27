@@ -91,6 +91,12 @@ for (const capability of ['navigator.geolocation', 'speechSynthesis', 'serviceWo
   if (!app.includes(capability)) throw new Error(`Missing browser capability: ${capability}`);
 }
 
+for (const explorationFeature of ['explore-map', 'select-signal', 'move-demo', 'signal-portrait']) {
+  if (!app.includes(explorationFeature) && !read('styles.css').includes(explorationFeature)) {
+    throw new Error(`Exploration map feature missing: ${explorationFeature}`);
+  }
+}
+
 const blockedCopy = ['では' + 'ない', 'では' + 'なく'];
 for (const file of ['index.html', 'styles.css', 'app.js', 'README.md', 'docs/WEB_VERSION.md']) {
   const source = read(file);

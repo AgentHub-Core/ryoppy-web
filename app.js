@@ -22,6 +22,8 @@
     storyIndex: 0,
     selectedQuestion: null,
     mode: saved.mode || 'demo',
+    demoSpotId: saved.demoSpotId || SPOT_ID,
+    selectedSpotId: saved.selectedSpotId || SPOT_ID,
     location: null,
     locationBusy: false,
     error: '',
@@ -62,6 +64,8 @@
   function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       mode: state.mode,
+      demoSpotId: state.demoSpotId,
+      selectedSpotId: state.spot?.id || state.selectedSpotId,
       unlocked: state.unlocked,
       nodes: state.nodes,
     }));
@@ -95,8 +99,7 @@
   }
 
   function currentDistance() {
-    if (state.mode === 'demo') return 18;
-    return distanceMeters(state.location, state.spot);
+    return distanceMeters(currentMapLocation(), state.spot);
   }
 
   function formatDistance(value) {
@@ -107,13 +110,69 @@
 
   function signalStatus() {
     const distance = currentDistance();
-    const ready = state.mode === 'demo' || (distance != null && distance <= state.spot.radiusM);
+    const character = characterAtSpot(state.spot);
+    const available = character?.id === CHARACTER_ID;
+    const ready = available && distance != null && distance <= state.spot.radiusM;
     const strength = ready ? 96 : distance == null ? 18 : clamp(Math.round(100 - distance / 35), 8, 88);
-    return { distance, ready, strength };
+    return { distance, ready, strength, available, character };
   }
 
-  function isUnlocked() {
-    return state.unlocked.includes(CHARACTER_ID);
+  function isUnlocked(characterId = CHARACTER_ID) {
+    return state.unlocked.includes(characterId);
+  }
+
+  function characterAtSpot(spot) {
+    const characterId = spot?.characterIds?.[0];
+    return state.data?.characters.find(item => item.id === characterId) || null;
+  }
+
+  function demoLocation() {
+    const spot = state.data?.spots.find(item => item.id === state.demoSpotId)
+      || state.data?.spots.find(item => item.id === SPOT_ID);
+    if (!spot) return null;
+    return {
+      latitude: spot.latitude + 0.00011,
+      longitude: spot.longitude - 0.00004,
+    };
+  }
+
+  function currentMapLocation() {
+    return state.mode === 'demo' ? demoLocation() : state.location;
+  }
+
+  function mapBounds() {
+    const latitudes = state.data.spots.map(spot => spot.latitude);
+    const longitudes = state.data.spots.map(spot => spot.longitude);
+    return {
+      minLatitude: Math.min(...latitudes) - 0.00135,
+      maxLatitude: Math.max(...latitudes) + 0.00135,
+      minLongitude: Math.min(...longitudes) - 0.00145,
+      maxLongitude: Math.max(...longitudes) + 0.00145,
+    };
+  }
+
+  function mapPoint(location) {
+    const bounds = mapBounds();
+    const xRatio = (location.longitude - bounds.minLongitude)
+      / (bounds.maxLongitude - bounds.minLongitude);
+    const yRatio = (bounds.maxLatitude - location.latitude)
+      / (bounds.maxLatitude - bounds.minLatitude);
+    return {
+      x: 65 + clamp(xRatio, 0, 1) * 770,
+      y: 48 + clamp(yRatio, 0, 1) * 452,
+      inBounds: xRatio >= 0 && xRatio <= 1 && yRatio >= 0 && yRatio <= 1,
+    };
+  }
+
+  function shortSpotName(spot) {
+    return ({
+      'rhinegeist': 'Rhinegeist',
+      'findlay-market': 'Findlay Market',
+      'music-hall': 'Music Hall',
+      'city-hall': 'City Hall',
+      'freedom-center': 'Freedom Center',
+      'ohio-river-view': 'Ohio River',
+    })[spot.id] || spot.name;
   }
 
   function topbar(back = false) {
@@ -122,7 +181,7 @@
         ${back
           ? '<button class="round-button" data-action="back-to-scan" aria-label="探索へ戻る">←</button>'
           : '<span class="brand">RYOPPY<span>!</span></span>'}
-        <span class="scene-location">${esc(state.spot?.name || 'Cincinnati')}</span>
+        <span class="scene-location">${esc(back ? state.spot?.name : 'Cincinnati Streetcar')}</span>
         <span class="collection-count" aria-label="図鑑登録数">${isUnlocked() ? '1' : '0'} / 3</span>
       </header>`;
   }
@@ -137,55 +196,121 @@
     }).join('');
   }
 
+  function mapTemplate() {
+    const routePoints = state.data.spots
+      .map(spot => {
+        const point = mapPoint(spot);
+        return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+      })
+      .join(' ');
+    const current = currentMapLocation();
+    const currentPoint = current ? mapPoint(current) : null;
+    const markers = state.data.spots.map((spot, index) => {
+      const point = mapPoint(spot);
+      const character = characterAtSpot(spot);
+      const known = isUnlocked(character?.id);
+      const selected = state.spot.id === spot.id;
+      const characterName = character?.nameJa || '未知の人物';
+      const mapCharacterName = characterName.split('・')[0];
+      return `
+        <button
+          class="map-signal ${known ? 'is-known' : 'is-unknown'} ${selected ? 'is-selected' : ''}"
+          style="--map-x:${(point.x / 9).toFixed(2)}%;--map-y:${(point.y / 5.6).toFixed(2)}%;--signal-delay:-${(index * 0.37).toFixed(2)}s"
+          data-action="select-signal"
+          data-spot="${esc(spot.id)}"
+          aria-label="${known ? esc(characterName) : '未知の人物信号'}・${esc(spot.name)}"
+        >
+          <span class="signal-wave" aria-hidden="true"></span>
+          ${known
+            ? `<span class="signal-portrait"><img src="${POSES.idle}" alt=""></span>
+               <span class="signal-name">${esc(mapCharacterName)}</span>`
+            : `<span class="signal-mystery" aria-hidden="true">?</span>
+               ${selected ? `<span class="signal-place">${esc(shortSpotName(spot))}</span>` : ''}`}
+        </button>`;
+    }).join('');
+
+    return `
+      <div class="explore-map" aria-label="Cincinnati Streetcar沿線の探索地図">
+        <svg class="map-canvas" viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="riverGlow" x1="0" x2="1">
+              <stop offset="0" stop-color="#276c80" />
+              <stop offset=".55" stop-color="#3b98a5" />
+              <stop offset="1" stop-color="#235e76" />
+            </linearGradient>
+          </defs>
+          <path class="map-river" d="M-30 504 C120 470 220 530 345 503 S610 475 930 508 L930 590 L-30 590 Z" />
+          <g class="map-blocks">
+            <path d="M18 75H880M18 150H880M18 225H880M18 300H880M18 375H880M18 450H880" />
+            <path d="M105 20V505M230 20V505M355 20V505M480 20V505M605 20V505M730 20V505" />
+            <path d="M35 430L790 40M175 520L900 135M0 250L480 0" />
+          </g>
+          <polyline class="streetcar-route route-glow" points="${routePoints}" />
+          <polyline class="streetcar-route" points="${routePoints}" />
+        </svg>
+        <div class="map-neighborhood north">OVER-THE-RHINE</div>
+        <div class="map-neighborhood south">THE BANKS</div>
+        ${currentPoint ? `
+          <div class="map-fog" style="--map-x:${(currentPoint.x / 9).toFixed(2)}%;--map-y:${(currentPoint.y / 5.6).toFixed(2)}%"></div>
+          ${currentPoint.inBounds ? `
+            <div class="current-marker" style="--map-x:${(currentPoint.x / 9).toFixed(2)}%;--map-y:${(currentPoint.y / 5.6).toFixed(2)}%">
+              <span></span><strong>${state.mode === 'demo' ? 'デモ位置' : '現在地'}</strong>
+            </div>` : '<div class="map-away">現在地はこの地図の外</div>'}
+        ` : '<div class="map-fog no-location"></div>'}
+        ${markers}
+      </div>`;
+  }
+
   function scanTemplate() {
     const status = signalStatus();
-    const returning = isUnlocked();
-    const headline = returning ? 'あの人物の気配が、戻ってきた。' : '誰かが、すぐ近くにいる。';
-    const buttonLabel = returning ? 'もう一度、会いに行く' : 'この気配に触れる';
-    const locationLabel = state.mode === 'demo'
-      ? `位置デモ・${state.spot.name}`
-      : state.location
-        ? `現在地・${formatDistance(status.distance)}`
-        : '現在地を待っています';
+    const returning = status.character && isUnlocked(status.character.id);
+    const unknownCount = state.data.characters.filter(character => !isUnlocked(character.id)).length;
+    const distanceLabel = status.distance == null ? '距離を測定していません' : formatDistance(status.distance);
+    const signalTitle = returning ? status.character.nameJa : '未知の人物信号';
+    let guidance = '現在地を取得すると、信号までの距離がわかる。';
+    let mainAction = '<button class="primary-action" disabled>現在地を待っています</button>';
+
+    if (!status.available) {
+      guidance = '強い気配がある。この人物の遭遇編は、次のAlphaで開放。';
+      mainAction = '<button class="primary-action" disabled>まだ解析できない信号</button>';
+    } else if (status.ready) {
+      guidance = returning ? '知っている顔だ。もう一度、話しかけられる。' : 'すぐ近くにいる。ここで遭遇できる。';
+      mainAction = `<button class="primary-action" data-action="start-encounter">${returning ? 'もう一度、会う' : '遭遇する'}</button>`;
+    } else if (state.mode === 'demo') {
+      guidance = `${distanceLabel}先から反応している。デモ位置を移動して近づける。`;
+      mainAction = '<button class="primary-action" data-action="move-demo">この地点へデモ移動</button>';
+    } else if (status.distance != null) {
+      guidance = `${distanceLabel}先から反応している。近づくほど信号が強くなる。`;
+      mainAction = '<button class="primary-action" disabled>もっと近づく</button>';
+    }
 
     return `
       <section class="experience scan-experience">
-        <div class="ambient ambient-one"></div>
-        <div class="ambient ambient-two"></div>
-        <div class="world-grid" aria-hidden="true"></div>
         ${topbar(false)}
 
         <main class="scan-main">
-          <div class="scan-copy">
-            <p class="signal-label">SIGNAL 01 · OTR</p>
-            <h1>${headline}</h1>
-            <p>Findlay Marketの方角から、19世紀の誰かの気配がする。近づくほど信号が強くなる。</p>
+          <div class="map-hud">
+            <div>
+              <p>街に残る信号</p>
+              <h1>${unknownCount}人の気配を追跡中</h1>
+            </div>
+            <span><i></i> 6地点</span>
           </div>
 
-          <div class="radar-wrap" aria-label="信号強度 ${status.strength}%">
-            <div class="radar-ring ring-three"></div>
-            <div class="radar-ring ring-two"></div>
-            <div class="radar-ring ring-one"></div>
-            <div class="radar-sweep"></div>
-            <div class="signal-core">
-              <span>${status.strength}</span>
-              <small>信号強度</small>
-            </div>
-          </div>
+          ${mapTemplate()}
 
           <section class="scan-panel">
             <div class="signal-readout">
-              <span class="live-dot"></span>
+              <span class="signal-strength"><b style="--strength:${status.strength}%"></b></span>
               <div>
-                <strong>${esc(locationLabel)}</strong>
-                <span>${status.ready ? '遭遇できる距離です' : '信号の近くへ移動してください'}</span>
+                <span>${esc(shortSpotName(state.spot))} · ${esc(distanceLabel)}</span>
+                <strong>${esc(signalTitle)}</strong>
               </div>
             </div>
-            <button class="primary-action" data-action="start-encounter" ${status.ready ? '' : 'disabled'}>
-              ${buttonLabel}
-            </button>
+            <p class="signal-guidance">${esc(guidance)}</p>
+            ${mainAction}
             <button class="text-action" data-action="use-gps" ${state.locationBusy ? 'disabled' : ''}>
-              ${state.locationBusy ? '現在地を取得中…' : '実際の現在地で探す'}
+              ${state.locationBusy ? '現在地を取得中…' : state.mode === 'gps' ? '現在地を更新' : '実際の現在地で探す'}
             </button>
             ${state.mode === 'gps' ? '<button class="text-action quiet" data-action="use-demo">位置デモへ戻る</button>' : ''}
             ${state.error ? `<p class="error-message">${esc(state.error)}</p>` : ''}
@@ -320,7 +445,9 @@
     document.body.dataset.view = state.view;
     requestAnimationFrame(() => {
       startCharacterDrift();
-      root.querySelector('button:not([disabled])')?.focus({ preventScroll: true });
+      if (state.view !== 'scan') {
+        root.querySelector('.dialogue-panel button:not([disabled])')?.focus({ preventScroll: true });
+      }
     });
   }
 
@@ -356,6 +483,9 @@
   }
 
   function startEncounter() {
+    const character = characterAtSpot(state.spot);
+    if (character?.id !== CHARACTER_ID || !signalStatus().ready) return;
+    state.character = character;
     clearTimeout(state.revealTimer);
     state.view = 'reveal';
     state.revealed = false;
@@ -410,6 +540,12 @@
         longitude: position.coords.longitude,
       };
       state.mode = 'gps';
+      state.spot = state.data.spots.reduce((nearest, spot) => {
+        const candidateDistance = distanceMeters(state.location, spot);
+        const nearestDistance = distanceMeters(state.location, nearest);
+        return candidateDistance < nearestDistance ? spot : nearest;
+      }, state.data.spots[0]);
+      state.selectedSpotId = state.spot.id;
       state.locationBusy = false;
       save();
       render();
@@ -441,7 +577,24 @@
 
   async function handleAction(button) {
     const action = button.dataset.action;
-    if (action === 'start-encounter') startEncounter();
+    if (action === 'select-signal') {
+      const spot = state.data.spots.find(item => item.id === button.dataset.spot);
+      if (!spot) return;
+      state.spot = spot;
+      state.selectedSpotId = spot.id;
+      state.error = '';
+      save();
+      navigator.vibrate?.(18);
+      render();
+    } else if (action === 'move-demo') {
+      state.demoSpotId = state.spot.id;
+      state.mode = 'demo';
+      state.location = null;
+      state.error = '';
+      save();
+      navigator.vibrate?.([24, 35, 24]);
+      render();
+    } else if (action === 'start-encounter') startEncounter();
     else if (action === 'start-story') {
       state.view = 'story';
       state.storyIndex = 0;
@@ -482,7 +635,8 @@
       if (!response.ok) throw new Error(`data ${response.status}`);
       state.data = await response.json();
       state.character = state.data.characters.find(item => item.id === CHARACTER_ID);
-      state.spot = state.data.spots.find(item => item.id === SPOT_ID);
+      state.spot = state.data.spots.find(item => item.id === state.selectedSpotId)
+        || state.data.spots.find(item => item.id === SPOT_ID);
       if (!state.character || !state.spot) throw new Error('encounter data missing');
       state.view = 'scan';
       render();
